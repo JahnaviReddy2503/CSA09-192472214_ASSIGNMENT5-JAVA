@@ -2,7 +2,7 @@
 
 Student name: **[NOT PROVIDED]**  
 Register number: **[NOT PROVIDED]**  
-Repository link: **[NOT CREATED - GitHub CLI is unavailable]**  
+Repository link: **https://github.com/JahnaviReddy2503/CSA09-192472214_ASSIGNMENT5-JAVA**  
 Java tested: OpenJDK 17.0.21
 
 This workspace contains the Part A persistence designs and the runnable,
