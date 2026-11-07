@@ -1,0 +1,2 @@
+﻿unbufferedLines=3, timeNanos=808001
+bufferedLines=3, timeNanos=202000
