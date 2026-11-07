@@ -5,10 +5,11 @@ Register number: **[NOT PROVIDED]**
 Repository link: **https://github.com/JahnaviReddy2503/CSA09-192472214_ASSIGNMENT5-JAVA**  
 Java tested: OpenJDK 17.0.21
 
-This workspace contains the Part A persistence designs and the runnable,
-file-based B1 implementation. MySQL-dependent B2-B4 execution is blocked
-because the `mysql` client/server and MySQL Connector/J are not available in
-the current environment. No database timings or results have been fabricated.
+This workspace contains the Part A persistence designs, runnable file-based B1
+implementation, B2 malformed-input tests, and JDBC source/schema for B2-B4.
+MySQL-dependent execution remains blocked because the `mysql` client/server and
+MySQL Connector/J are not available in the current environment. No database
+timings or results have been fabricated.
 
 ## Structure
 
@@ -22,6 +23,7 @@ the current environment. No database timings or results have been fabricated.
 | `Task06_FileStoreImplementation` | B1 Java sources and actual output |
 | `Task07_SQLInjection` | B2 local schema |
 | `Task08_JDBC_Batch_Migration` | B3 loader and SQL schema |
+| `Report` | Consolidated assignment report |
 
 ## Run B1
 
@@ -44,6 +46,33 @@ null
 Actual output is saved in
 `Task06_FileStoreImplementation/output/passstore_actual.txt`.
 
+Run the B1 benchmark after compilation:
+
+```powershell
+java -cp Task06_FileStoreImplementation\out B1Benchmark
+```
+
+It generates 1 MiB, 10 MiB, and 50 MiB files, warms up each method, and
+records the median of three runs. Search growth is measured at 1,000, 10,000,
+and 100,000 records.
+
+The verified medians were:
+
+```text
+sizeMiB,unbufferedMedianMs,bufferedMedianMs,lineCount
+1,1396,1,17190
+10,25001,21,171898
+50,102387,30,859489
+
+records,medianFindMs,found
+1000,1,true
+10000,5,true
+100000,31,true
+```
+
+These values are machine-specific and are preserved in
+`Task06_FileStoreImplementation/results/B1_benchmark_actual.csv`.
+
 ## Database setup when available
 
 Set `DB_URL`, `DB_USER`, and `DB_PASS` in the process environment. Execute
@@ -53,7 +82,6 @@ before compiling JDBC sources. Never commit the password.
 
 ## Status
 
-Part A and B1 have been implemented and verified. B2-B4 database execution,
-real JDBC measurements, personal details, task-wise commits, and GitHub push
-remain pending because the required local services, dependency, identity
-values, and authenticated GitHub tooling are unavailable.
+Part A, B1 file experiments, B2 malformed-file handling, and B3/B4 JDBC source
+and SQL artifacts are implemented. B2-B4 database execution and real JDBC
+measurements remain blocked because MySQL and Connector/J are unavailable.

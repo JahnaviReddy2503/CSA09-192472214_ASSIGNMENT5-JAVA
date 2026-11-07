@@ -3,6 +3,6 @@ out/
 target/
 *.log
 *.tmp
-*.csv
 .env
 credentials.properties
+build-out/
