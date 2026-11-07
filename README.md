@@ -7,9 +7,10 @@ Java tested: OpenJDK 17.0.21
 
 This workspace contains the Part A persistence designs, runnable file-based B1
 implementation, B2 malformed-input tests, and JDBC source/schema for B2-B4.
-MySQL-dependent execution remains blocked because the `mysql` client/server and
-MySQL Connector/J are not available in the current environment. No database
-timings or results have been fabricated.
+MySQL server/client installation is blocked by Windows Installer cancellation
+(MSI exit code 1602). MySQL Connector/J is now available locally at
+`lib\mysql-connector-j-9.4.0.jar`. No database timings or results have been
+fabricated.
 
 ## Structure
 
@@ -75,13 +76,29 @@ These values are machine-specific and are preserved in
 
 ## Database setup when available
 
-Set `DB_URL`, `DB_USER`, and `DB_PASS` in the process environment. Execute
+Install MySQL Server 8.4.9 with an interactive administrator-approved
+installation:
+
+```powershell
+winget install --id Oracle.MySQL --exact --interactive
+```
+
+Start the MySQL service, then set `DB_URL`, `DB_USER`, and `DB_PASS` in the
+current PowerShell process. Execute
 `Task08_JDBC_Batch_Migration/sql/create_bus_pass.sql` only against the local
-assignment database `csa09_a5_test`. Add MySQL Connector/J to the classpath
-before compiling JDBC sources. Never commit the password.
+assignment database `csa09_a5_test`. Compile JDBC sources with:
+
+```powershell
+$cp = "lib\mysql-connector-j-9.4.0.jar"
+javac -cp $cp -d out Task08_JDBC_Batch_Migration\src\*.java
+```
+
+Never commit the password. The installer must be approved interactively because
+the silent installer was cancelled by Windows with exit code 1602.
 
 ## Status
 
 Part A, B1 file experiments, B2 malformed-file handling, and B3/B4 JDBC source
-and SQL artifacts are implemented. B2-B4 database execution and real JDBC
-measurements remain blocked because MySQL and Connector/J are unavailable.
+and SQL artifacts are implemented. Connector/J is available; B2-B4 database
+execution and real JDBC measurements remain blocked until MySQL Server is
+installed and started.
