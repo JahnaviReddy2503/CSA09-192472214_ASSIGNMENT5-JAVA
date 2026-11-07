@@ -35,7 +35,9 @@ The complete answers are maintained in separate readable documents:
 | A5 | [A5 transactions and injection](../Task05_Transactions/results/A5_transactions_injection.md) |
 
 These documents include structured pseudocode, diagrams, alternatives, and
-time/space analysis. Part A contains no Java implementations.
+time/space analysis. The A3 DAO and A4 serialization code examples are in their
+respective `src` folders, while the required Part A answers remain
+pseudocode/reasoning documents.
 
 ## Part B
 
@@ -106,6 +108,9 @@ empty=null
 missing=null
 result=malformed records were skipped
 ```
+
+The actual output is saved in
+[file_adversarial_actual.txt](../Task07_SQLInjection/results/file_adversarial_actual.txt).
 
 The unsafe and prepared login methods are implemented, but actual SQL injection
 execution is **BLOCKED** until the local `csa09_a5_test` database is available.

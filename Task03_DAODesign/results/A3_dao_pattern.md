@@ -19,6 +19,11 @@ Service -> StudentDao / CourseDao / MarksDao -> JDBC -> database table
 
 ## A3.2 Generic DAO contract
 
+The compilable example is in [`Dao.java`](../src/Dao.java),
+[`Student.java`](../src/Student.java), and
+[`StudentDao.java`](../src/StudentDao.java). `StudentDao` uses
+`PreparedStatement`, try-with-resources, and a row-mapping helper.
+
 **INTERFACE Dao<T, K>**
 
 ```text

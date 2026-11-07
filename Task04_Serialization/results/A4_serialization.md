@@ -7,6 +7,10 @@ or database resources.
 
 ## A4.1 Object graph and transient fields
 
+The compilable demonstration is in [`Resident.java`](../src/Resident.java) and
+[`SerializationDemo.java`](../src/SerializationDemo.java). It confirms that a
+transient connection is `null` after deserialization.
+
 ```text
 Hostel
   +--> List<Room>
