@@ -1,0 +1,8 @@
+out/
+*.class
+target/
+*.log
+*.tmp
+*.csv
+.env
+credentials.properties
