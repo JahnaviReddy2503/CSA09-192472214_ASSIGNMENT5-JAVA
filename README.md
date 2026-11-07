@@ -7,8 +7,8 @@ Java tested: OpenJDK 17.0.21
 
 This workspace contains the Part A persistence designs, runnable file-based B1
 implementation, B2 malformed-input tests, and JDBC source/schema for B2-B4.
-MySQL server/client installation is blocked by Windows Installer cancellation
-(MSI exit code 1602). MySQL Connector/J is now available locally at
+MySQL server/client installation is blocked by Windows Installer failure
+(MSI exit code 1603). MySQL Connector/J is now available locally at
 `lib\mysql-connector-j-9.4.0.jar`. No database timings or results have been
 fabricated.
 
@@ -93,8 +93,9 @@ $cp = "lib\mysql-connector-j-9.4.0.jar"
 javac -cp $cp -d out Task08_JDBC_Batch_Migration\src\*.java
 ```
 
-Never commit the password. The installer must be approved interactively because
-the silent installer was cancelled by Windows with exit code 1602.
+Never commit the password. The installer must be run with administrator privileges on this machine; both
+the interactive and unattended attempts failed before a MySQL service was
+created.
 
 ## Status
 

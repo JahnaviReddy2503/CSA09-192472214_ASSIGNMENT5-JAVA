@@ -6,7 +6,7 @@
 **Register number:** 192472214  
 **Repository:** [CSA09-192472214_ASSIGNMENT5-JAVA](https://github.com/JahnaviReddy2503/CSA09-192472214_ASSIGNMENT5-JAVA)  
 **Java:** OpenJDK 17.0.21  
-**Database:** MySQL/JDBC execution pending because MySQL is not installed or available on PATH.
+**Database:** MySQL/JDBC execution blocked by Windows Installer failure (MSI 1603).
 
 ## Submission status
 
@@ -121,14 +121,16 @@ Sources:
 
 - [PassLoader.java](../Task08_JDBC_Batch_Migration/src/PassLoader.java)
 - [create_bus_pass.sql](../Task08_JDBC_Batch_Migration/sql/create_bus_pass.sql)
+- [JdbcExperiment.java](../Task08_JDBC_Batch_Migration/src/JdbcExperiment.java)
 
 `PassLoader.loadAll` binds all five values, executes batches every 1,000 rows,
 executes the remainder, commits on success, rolls back on SQL/runtime failure,
 and restores the original auto-commit setting.
 
-Execution is **BLOCKED**: `mysql --version` is unavailable and no Connector/J
-jar is present in the workspace. Therefore no database output or timing is
-reported as actual.
+Execution remains **BLOCKED** until the interactive MySQL server installation
+finishes. Connector/J is available in `lib/mysql-connector-j-9.4.0.jar`, and
+the JDBC harness is ready to run with the `DB_URL`, `DB_USER`, and `DB_PASS`
+environment variables.
 
 ### B4 - Migration and metadata
 
