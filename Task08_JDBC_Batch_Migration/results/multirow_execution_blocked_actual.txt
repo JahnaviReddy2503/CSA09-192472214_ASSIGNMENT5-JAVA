@@ -1,0 +1,3 @@
+Exception in thread "main" java.io.IOException: Missing config\db.properties; copy config/db.properties.example and set local credentials
+	at DatabaseConnection.getConnection(DatabaseConnection.java:19)
+	at MultiRowAndLoadData.main(MultiRowAndLoadData.java:20)

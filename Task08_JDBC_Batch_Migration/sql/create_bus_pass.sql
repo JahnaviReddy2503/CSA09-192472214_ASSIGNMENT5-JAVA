@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS csa09_a5_test;
-USE csa09_a5_test;
+CREATE DATABASE IF NOT EXISTS transport_db;
+USE transport_db;
 
 CREATE TABLE IF NOT EXISTS bus_pass (
     pass_id VARCHAR(32) PRIMARY KEY,

@@ -3,52 +3,68 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class Migration {
+    private static final int BATCH_SIZE = 1000;
+    private static final Path DEFAULT_INPUT =
+            Path.of("Task08_JDBC_Batch_Migration", "input", "existing_passes.csv");
+    private static final Path REPORT =
+            Path.of("Task08_JDBC_Batch_Migration", "output", "migration_report.txt");
+
     private Migration() {
     }
 
-    public static List<String[]> readValidPasses(Path file, List<String> failures)
-            throws IOException {
-        List<String[]> valid = new ArrayList<>();
-        if (!Files.exists(file)) {
-            failures.add("FILE_MISSING: " + file);
-            return valid;
+    public static void main(String[] args) throws Exception {
+        Path input = args.length == 0 ? DEFAULT_INPUT : Path.of(args[0]);
+        ValidationResult validation = readAndValidate(input);
+        MigrationReport report = new MigrationReport(validation.linesRead(),
+                validation.valid().size(), validation.rejections());
+        boolean migrationStarted = false;
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            migrationStarted = true;
+            int inserted = migrate(connection, validation.valid());
+            report.complete(inserted, 0);
+            writeReport(report);
+            System.out.print(report);
+        } catch (IOException | SQLException | RuntimeException error) {
+            report.fail(error.getMessage(), migrationStarted ? validation.valid().size() : 0,
+                    migrationStarted ? 0 : validation.valid().size());
+            writeReport(report);
+            System.out.print(report);
+            throw error;
         }
+    }
+
+    static ValidationResult readAndValidate(Path file) throws IOException {
+        List<String[]> valid = new ArrayList<>();
+        List<String> rejections = new ArrayList<>();
+        Set<String> passIds = new HashSet<>();
+        int linesRead = 0;
         try (BufferedReader reader = Files.newBufferedReader(file)) {
             String line;
-            int lineNumber = 0;
             while ((line = reader.readLine()) != null) {
-                lineNumber++;
-                String[] fields = line.split(",", -1);
-                if (fields.length != 5) {
-                    failures.add("line " + lineNumber + ": expected 5 fields");
-                    continue;
+                linesRead++;
+                String reason = PassStore.validationError(line);
+                if (reason == null && !passIds.add(line.split(",", -1)[0])) {
+                    reason = "duplicate pass ID";
                 }
-                try {
-                    int route = Integer.parseInt(fields[3]);
-                    double amount = Double.parseDouble(fields[4]);
-                    if (fields[0].isBlank() || fields[1].isBlank()
-                            || fields[2].isBlank() || route <= 0
-                            || !Double.isFinite(amount) || amount < 0) {
-                        throw new IllegalArgumentException("invalid field value");
-                    }
-                    valid.add(fields);
-                } catch (IllegalArgumentException error) {
-                    failures.add("line " + lineNumber + ": " + error.getMessage());
+                if (reason == null) {
+                    valid.add(line.split(",", -1));
+                } else {
+                    rejections.add("line " + linesRead + ", raw=[" + line + "], reason=" + reason);
                 }
             }
         }
-        return valid;
+        return new ValidationResult(linesRead, valid, rejections);
     }
 
-    public static int migrate(Connection connection, List<String[]> passes) throws SQLException {
+    static int migrate(Connection connection, List<String[]> passes) throws SQLException {
         String sql = "INSERT INTO bus_pass(pass_id, reg_no, name, route_no, amount) "
                 + "VALUES (?, ?, ?, ?, ?)";
         boolean oldAutoCommit = connection.getAutoCommit();
@@ -63,7 +79,7 @@ public final class Migration {
                 statement.setDouble(5, Double.parseDouble(pass[4]));
                 statement.addBatch();
                 count++;
-                if (count % 1000 == 0) {
+                if (count % BATCH_SIZE == 0) {
                     statement.executeBatch();
                 }
             }
@@ -71,23 +87,22 @@ public final class Migration {
             connection.commit();
             return count;
         } catch (SQLException | RuntimeException error) {
-            connection.rollback();
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackError) {
+                error.addSuppressed(rollbackError);
+            }
             throw error;
         } finally {
             connection.setAutoCommit(oldAutoCommit);
         }
     }
 
-    public static void printMetadata(Connection connection) throws SQLException {
-        DatabaseMetaData metadata = connection.getMetaData();
-        System.out.println("product=" + metadata.getDatabaseProductName());
-        System.out.println("version=" + metadata.getDatabaseProductVersion());
-        System.out.println("driver=" + metadata.getDriverName());
-        System.out.println("driverVersion=" + metadata.getDriverVersion());
-        try (ResultSet tables = metadata.getTables(null, null, "%", new String[]{"TABLE"})) {
-            while (tables.next()) {
-                System.out.println("table=" + tables.getString("TABLE_NAME"));
-            }
-        }
+    private static void writeReport(MigrationReport report) throws IOException {
+        Files.createDirectories(REPORT.getParent());
+        Files.writeString(REPORT, report.toString());
+    }
+
+    record ValidationResult(int linesRead, List<String[]> valid, List<String> rejections) {
     }
 }

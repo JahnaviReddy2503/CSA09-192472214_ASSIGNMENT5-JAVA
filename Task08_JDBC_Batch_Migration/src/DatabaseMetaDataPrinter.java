@@ -23,9 +23,11 @@ public final class DatabaseMetaDataPrinter {
         try (Statement statement = connection.createStatement();
                 ResultSet result = statement.executeQuery("SELECT * FROM bus_pass LIMIT 1")) {
             ResultSetMetaData columns = result.getMetaData();
+            System.out.println("columnCount=" + columns.getColumnCount());
             for (int i = 1; i <= columns.getColumnCount(); i++) {
                 System.out.println("column=" + columns.getColumnName(i)
-                        + ",type=" + columns.getColumnTypeName(i));
+                        + ",type=" + columns.getColumnTypeName(i)
+                        + ",size=" + columns.getPrecision(i));
             }
         }
     }

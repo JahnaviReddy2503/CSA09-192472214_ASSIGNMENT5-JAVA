@@ -1,0 +1,12 @@
+recordsRead=7
+validRecords=2
+rejectedRecords=5
+insertedRecords=0
+failedRecords=0
+notAttemptedRecords=2
+databaseFailure=Missing config\db.properties; copy config/db.properties.example and set local credentials
+rejected=line 3, raw=[P1003,R1003,WrongFieldCount,7], reason=expected 5 legacy fields or 7 full fields, found 4
+rejected=line 4, raw=[P1004,R1004,BadRoute,route,200.00], reason=route is not an integer
+rejected=line 5, raw=[P1005,R1005,BadAmount,8,not-a-number], reason=amount is not numeric
+rejected=line 6, raw=[], reason=empty line
+rejected=line 7, raw=[P1001,R1006,DuplicateId,9,500.00], reason=duplicate pass ID
