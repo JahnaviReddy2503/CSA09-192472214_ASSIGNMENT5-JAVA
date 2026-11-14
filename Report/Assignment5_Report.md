@@ -1,175 +1,144 @@
-# CSA09 Programming in Java - Assignment 5 (CO5)
+# CSA09 Programming in Java — Assignment 5 (CO5)
 
-## Data Persistence Engineering - Files and Databases
+## Data Persistence Engineering — Files and Databases
 
-**Student:** Jahnavi Reddy  
-**Register number:** 192472214  
-**Repository:** [CSA09-192472214_ASSIGNMENT5-JAVA](https://github.com/JahnaviReddy2503/CSA09-192472214_ASSIGNMENT5-JAVA)  
-**Java:** OpenJDK 17.0.21  
-**Database:** MySQL/JDBC execution blocked by Windows Installer failure (MSI 1603).
+**Student:** Jahnavi Reddy (read from this checkout's Git identity)
+**Register number:** 192472214 (read from the current origin name)
+**Required repository name:** `CSA09-192472214-Assignment5`
+**Current configured remote:** [CSA09-192472214_ASSIGNMENT5-JAVA](https://github.com/JahnaviReddy2503/CSA09-192472214_ASSIGNMENT5-JAVA)
+**Java:** Microsoft OpenJDK 17.0.21
+**Database:** MySQL database work is blocked because no local MySQL server is installed or reachable.
 
-## Submission status
+The current remote name does not match the required repository name. This
+report does not claim that the required repository was created or that new
+changes were pushed.
+Intended target URL (verify or create before submission):
+[CSA09-192472214-Assignment5](https://github.com/JahnaviReddy2503/CSA09-192472214-Assignment5).
 
-This report contains the completed Part A designs, runnable local file
-experiments, SQL schemas, JDBC transaction/batch implementations, and actual
-non-database evidence. Database results and JDBC measurements are deliberately
-marked **BLOCKED** rather than invented.
+## Executive summary
 
-## Contents
+Part A describes text and binary layouts, buffered I/O, DAO separation,
+serialization compatibility, JDBC transactions, and prepared statements.
+Part B implements and locally verifies the file store, buffer counters,
+serialization object graph, damaged-file validation, JDBC batch loading, SQL
+injection controls, database metadata inspection, and migration source code.
 
-1. [Part A](#part-a)
-2. [Part B](#part-b)
-3. [Complexity and engineering decision](#engineering-decision)
-4. [Validation](#validation)
+The Java sources compile with JDK 17 and the non-database programs execute.
+Database-dependent demonstrations have not been presented as successful:
+MySQL is absent, `127.0.0.1:3306` is unreachable, and local
+`config\db.properties` is not present.
 
-## Part A
+## Part A — Design
 
-The complete answers are maintained in separate readable documents:
-
-| Task | Document |
+| Task | Design evidence |
 |---|---|
-| A1 | [A1 file format](../Task01_FileFormat/results/A1_file_format.md) |
-| A2 | [A2 buffered I/O](../Task02_BufferedIO/results/A2_buffered_io.md) |
-| A3 | [A3 DAO pattern](../Task03_DAODesign/results/A3_dao_pattern.md) |
-| A4 | [A4 serialization](../Task04_Serialization/results/A4_serialization.md) |
-| A5 | [A5 transactions and injection](../Task05_Transactions/results/A5_transactions_injection.md) |
+| A1 | [Delimited and binary records, algorithms, damage handling, fixed records](../Task01_FileFormat/results/A1_file_format.md) |
+| A2 | [Byte and buffered reads, read-call counts, flowchart, memory comparison](../Task02_BufferedIO/results/A2_buffered_io.md) |
+| A3 | [Generic DAO, Student outline, mapping, complexity](../Task03_DAODesign/results/A3_dao_pattern.md) |
+| A4 | [Serializable graph, transient resources, UID evolution, CSV/JSON comparison](../Task04_Serialization/results/A4_serialization.md) |
+| A5 | [Wallet transaction, rollback, unsafe SQL, prepared parameters](../Task05_Transactions/results/A5_transactions_injection.md) |
+| Cross-task complexity | [Part A complexity table](../PartA_Complexity_Analysis.md) |
 
-These documents include structured pseudocode, diagrams, alternatives, and
-time/space analysis. The A3 DAO and A4 serialization code examples are in their
-respective `src` folders, while the required Part A answers remain
-pseudocode/reasoning documents.
+No SIMATS pseudocode-standard file was found in the workspace; the Part A
+documents visibly say to align their numbered INPUT/OUTPUT/BEGIN/END style
+with the official standard if it is provided.
 
-## Part B
+## Part B — Implementation and results
 
-### B1 - File store and buffered I/O
+### B1 — File store, counters, and search
 
-Source:
-
-- [PassStore.java](../Task06_FileStoreImplementation/src/PassStore.java)
-- [LineCounter.java](../Task06_FileStoreImplementation/src/LineCounter.java)
-- [B1Benchmark.java](../Task06_FileStoreImplementation/src/B1Benchmark.java)
-
-Compile and run:
-
-```powershell
-javac -d out Task06_FileStoreImplementation\src\*.java
-java -cp out PassStore
-java -cp out B1Runner
-java -cp out B1Benchmark
-```
-
-Actual smoke-test output:
+`PassStore` maintains the provided five-field example and supports the full
+seven-field bus-pass record using escaped pipe delimiters. Damaged lines are
+skipped; numeric/date validation occurs before a record is returned. The
+expected demo output is:
 
 ```text
 [P1003, 192311003, Divya, 7, 3800.0]
 null
 ```
 
-The damaged P1002 line has two fields and is skipped. The search continues and
-returns `null` because no valid P1002 record exists.
+The damaged P1002 line has only two fields. `find` rejects that line and
+continues scanning, so the valid result for P1003 is still found and P1002
+returns `null`.
 
-Actual smoke-test counter output is saved in
-[line_counter_actual.txt](../Task06_FileStoreImplementation/output/line_counter_actual.txt).
-The benchmark output is saved in
+The test table is in
+[test_results.txt](../Task06_FileStoreImplementation/output/test_results.txt);
+the demo is in
+[passstore_actual.txt](../Task06_FileStoreImplementation/output/passstore_actual.txt).
+The full-size repeated buffer, growth, and map-vs-scan measurements are in
 [B1_benchmark_actual.csv](../Task06_FileStoreImplementation/results/B1_benchmark_actual.csv).
-The benchmark warmed up each method and records three runs, using the median:
+All reported values are generated by the executable benchmark on this machine.
 
-| File size | Unbuffered median (ms) | Buffered median (ms) | Lines |
-|---:|---:|---:|---:|
-| 1 MiB | 1,396 | 1 | 17,190 |
-| 10 MiB | 25,001 | 21 | 171,898 |
-| 50 MiB | 102,387 | 30 | 859,489 |
+### B2 — SQL injection and damaged data
 
-Search-growth medians:
-
-| Records | Median find (ms) |
-|---:|---:|
-| 1,000 | 1 |
-| 10,000 | 5 |
-| 100,000 | 31 |
-
-The results show the expected linear scan trend and the large reduction in
-physical-read overhead from buffering.
-
-### B2 - Adversarial input
-
-Sources:
-
-- [AdversarialFileTest.java](../Task07_SQLInjection/src/AdversarialFileTest.java)
-- [LoginQueries.java](../Task07_SQLInjection/src/LoginQueries.java)
-- [schema.sql](../Task07_SQLInjection/sql/schema.sql)
-
-The file validation test was executed locally:
-
-```text
-valid=[P1004, R1004, Valid, 7, 3800.0]
-damaged=null
-empty=null
-missing=null
-result=malformed records were skipped
-```
-
-The actual output is saved in
+The source contains separate `UnsafeLogin` and `SecureLogin` classes, a runner
+with normal and adversarial controls, and a local-only connection guard. The
+file validation tests actually ran; output is
 [file_adversarial_actual.txt](../Task07_SQLInjection/results/file_adversarial_actual.txt).
+The SQL injection runner did not reach a database because local configuration
+and MySQL are absent; the captured failure is
+[injection_blocked_actual.txt](../Task07_SQLInjection/results/injection_blocked_actual.txt).
+It is not represented as a successful injection test.
 
-The unsafe and prepared login methods are implemented, but actual SQL injection
-execution is **BLOCKED** until the local `csa09_a5_test` database is available.
+### B3 — Statement, prepared, batch, and bulk loading
 
-### B3 - JDBC batch loading
+`JdbcExperiment` compares and verifies four insert strategies at 10, 1,000,
+10,000, and 100,000 rows, with three trials and averages; it also exercises
+metadata and rollback scenarios. `MultiRowAndLoadData` compares bound
+multi-row statements and `LOAD DATA LOCAL INFILE`. `PassLoader` uses a single
+transaction and executes batches at 1,000 rows.
 
-Sources:
+These database experiments are implemented but not executed because MySQL is
+unavailable. The actual dependency error is in
+[jdbc_execution_blocked_actual.txt](../Task08_JDBC_Batch_Migration/results/jdbc_execution_blocked_actual.txt).
+No database timings are estimated or fabricated.
 
-- [PassLoader.java](../Task08_JDBC_Batch_Migration/src/PassLoader.java)
-- [create_bus_pass.sql](../Task08_JDBC_Batch_Migration/sql/create_bus_pass.sql)
-- [JdbcExperiment.java](../Task08_JDBC_Batch_Migration/src/JdbcExperiment.java)
+### B4 — Migration and metadata
 
-`PassLoader.loadAll` binds all five values, executes batches every 1,000 rows,
-executes the remainder, commits on success, rolls back on SQL/runtime failure,
-and restores the original auto-commit setting.
+`Migration` validates each input line, records duplicates and damaged rows
+with line number/raw content/reason, and uses one transactional batch for
+valid data. The actual local report records 7 input lines, 2 valid rows, and
+5 rejected rows. Database connection was unavailable, so both valid rows were
+reported as not attempted:
+[migration_report.txt](../Task08_JDBC_Batch_Migration/output/migration_report.txt).
 
-Execution remains **BLOCKED** until the interactive MySQL server installation
-finishes. Connector/J is available in `lib/mysql-connector-j-9.4.0.jar`, and
-the JDBC harness is ready to run with the `DB_URL`, `DB_USER`, and `DB_PASS`
-environment variables.
-
-### B4 - Migration and metadata
-
-[Migration.java](../Task08_JDBC_Batch_Migration/src/Migration.java) validates
-field count, required values, route, and amount; it reports invalid lines and
-loads valid records transactionally in batches. `printMetadata` reports product,
-version, driver, and tables.
-
-File parsing compiles and is executable without a database. Database migration
-and metadata output are **BLOCKED** for the same environment reason as B3.
+`DatabaseInfo` uses JDBC `DatabaseMetaData` to report product, driver, version,
+and tables. It could not query a live server; see
+[metadata_blocked_actual.txt](../Task08_JDBC_Batch_Migration/results/metadata_blocked_actual.txt).
 
 ## Engineering decision
 
-For one local counter, a validated text file is simple and inspectable. For 12
-campuses, 100 times the volume, and simultaneous counters, a relational
-database is the production choice because it provides indexed lookup,
-transactions, constraints, concurrent access control, and prepared statements.
-Text files remain useful as import/export or recovery artifacts. Java native
-serialization is not recommended as the system of record because it is
-Java-specific, difficult to evolve safely, and unsafe for untrusted input.
+For 12 campuses, a shared relational database is the appropriate system of
+record. It provides indexed searches, constraints, transactions, and
+concurrency control for multiple counters. Text and serialized files remain
+appropriate for local interchange, export, backup, or recovery. A per-campus
+serialized-file design would still require scanning up to 12 files, adds
+file-locking and lost-update risks, and provides no database indexes or
+transaction manager.
 
-## Validation
+The B1 measurement demonstrates the cost of byte-at-a-time I/O and linear
+scans. Since MySQL was not runnable, the database side of the final scale
+decision is based on required integrity/concurrency features rather than
+unobserved performance numbers. The target MySQL host must be benchmarked
+before choosing a production batch size based on time.
 
-| Requirement | Status | Evidence |
-|---|---|---|
-| A1-A5 written answers | PASS | Part A documents |
-| B1 compile and smoke test | PASS | Actual output files |
-| B1 benchmark | PASS | Benchmark CSV and table above |
-| B2 malformed-file test | PASS | `AdversarialFileTest` output |
-| B2 SQL injection run | BLOCKED | MySQL unavailable |
-| B3 JDBC tests | BLOCKED | MySQL and Connector/J unavailable |
-| B4 file validation | PASS | `Migration.readValidPasses` |
-| B4 database migration/metadata | BLOCKED | MySQL unavailable |
-| Git history | PASS | Task-wise local commits |
-| GitHub push | PASS | Repository URL above |
+## Environment and verification
 
-## Manual environment steps
+| Component | Observed |
+|---|---|
+| OS | Windows 11 Home, build 10.0.26300, 64-bit |
+| CPU | Intel Core i7-1360P, 12 cores / 16 threads |
+| RAM | 15.6 GiB |
+| Java | Microsoft OpenJDK 17.0.21 |
+| MySQL | No service/client; port 3306 unreachable |
+| MySQL version | Not available |
+| Connector/J | 9.4.0 jar included |
+| Maven / GitHub CLI | Not installed |
 
-Install/start local MySQL, create `csa09_a5_test` using the supplied SQL,
-install MySQL Connector/J, set `DB_URL`, `DB_USER`, and `DB_PASS`, then run the
-B2-B4 JDBC programs and append their actual console output and timings. Do not
-commit the password.
+See [README.md](../README.md) for compile commands, local SQL setup, database
+configuration, and each runnable program. The machine-level task/status
+checklist is in [FINAL_VERIFICATION_REPORT.md](../FINAL_VERIFICATION_REPORT.md).
+
+**Screenshots:** None were fabricated. Add authentic screenshots of the local
+MySQL login controls, insert/rollback table counts, metadata, and migration
+report after the database prerequisite is resolved.
