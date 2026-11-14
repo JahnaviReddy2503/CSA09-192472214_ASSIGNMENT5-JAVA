@@ -3,26 +3,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public final class AdversarialFileTest {
+    private static final Path DEFAULT_INPUT =
+            Path.of("Task07_SQLInjection", "input", "damaged_passes.csv");
+
     private AdversarialFileTest() {
     }
 
     public static void main(String[] args) throws IOException {
-        Path file = Files.createTempFile("damaged-passes-", ".csv");
-        try {
-            Files.writeString(file,
-                    "P1001,R1001,Arun,12,4500.0\n"
-                            + "P1002,R1002,Wrong,12\n"
-                            + "P1003,R1003,NonNumeric,12,not-a-number\n"
-                            + "\n"
-                            + "P1004,R1004,Valid,7,3800.0\n");
-            PassStore store = new PassStore(file);
-            System.out.println("valid=" + java.util.Arrays.toString(store.find("P1004")));
-            System.out.println("damaged=" + store.find("P1002"));
-            System.out.println("empty=" + store.find(""));
-            System.out.println("missing=" + store.find("P9999"));
-            System.out.println("result=malformed records were skipped");
-        } finally {
-            Files.deleteIfExists(file);
+        Path file = args.length == 0 ? DEFAULT_INPUT : Path.of(args[0]);
+        int lineNumber = 0;
+        for (String line : Files.readAllLines(file)) {
+            lineNumber++;
+            String reason = PassStore.validationError(line);
+            System.out.printf("line=%d | %s | %s%n", lineNumber,
+                    reason == null ? "ACCEPTED" : "REJECTED",
+                    reason == null ? line : reason);
         }
+        PassStore store = new PassStore(file);
+        System.out.println("validSearch="
+                + java.util.Arrays.toString(store.find("P1004")));
     }
 }
