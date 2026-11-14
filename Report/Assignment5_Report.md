@@ -10,9 +10,10 @@
 **Database:** MySQL database work is blocked because no local MySQL server is installed or reachable.
 
 The current remote name does not match the required repository name. This
-report does not claim that the required repository was created or that new
-changes were pushed.
-Intended target URL (verify or create before submission):
+repository was not created or renamed. At the student's direction, commits
+were pushed to the configured existing remote's `master` branch and verified.
+Intended target URL (verify or create if the exact-name requirement still
+applies):
 [CSA09-192472214-Assignment5](https://github.com/JahnaviReddy2503/CSA09-192472214-Assignment5).
 
 ## Executive summary

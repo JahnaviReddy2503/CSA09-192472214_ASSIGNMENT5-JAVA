@@ -96,9 +96,10 @@
 5. Maven validation remains optional for running the provided `javac` build;
    install Maven and run the README commands if Maven packaging evidence is
    required.
-6. Confirm the exact-name GitHub repository exists and authenticate before
-   changing `origin` and pushing. No push was made to the existing mismatched
-   remote.
+6. Commits were pushed to the existing mismatched `origin` master branch at
+   the student's direction; the remote SHA was verified against local HEAD.
+   If the exact-name repository is mandatory, create/confirm it and push there
+   separately.
 
 ## Git and credential note
 
@@ -106,5 +107,5 @@ Task-wise commits existed before this work, and the current changes were also
 committed in task groups. A prior historical commit contains a synthetic test
 credential. The current schema and source no longer hardcode that credential,
 and database credentials remain in an ignored local properties file. Git
-Git history was not rewritten. Review or replace that historical commit before
+history was not rewritten. Review or replace that historical commit before
 publishing if repository policy prohibits retaining it in history.

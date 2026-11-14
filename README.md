@@ -13,8 +13,10 @@ The requested repository name is
 `CSA09-192472214-Assignment5`. The existing remote is
 `https://github.com/JahnaviReddy2503/CSA09-192472214_ASSIGNMENT5-JAVA.git`,
 which does **not** have the required name. The exact-name repository has not
-been created or pushed from this session.
-Intended target URL (verify or create before submission):
+been used. At the student's direction, the local commits were pushed to the
+existing remote's `master` branch. This does not create or rename the
+repository. Intended target URL (verify or create if the exact-name requirement
+still applies):
 [CSA09-192472214-Assignment5](https://github.com/JahnaviReddy2503/CSA09-192472214-Assignment5).
 
 ## Environment and evidence status
@@ -244,10 +246,12 @@ have actual database timings until the local MySQL prerequisite is fulfilled.
 
 ## GitHub and commits
 
-The existing local repository has task-wise commits and a configured `origin`,
-but that remote's name does not match the required repository name. This
-checkout does not have the GitHub CLI, and no push to the mismatched remote was
-made. Before submission, create or confirm
+The existing remote is
+[CSA09-192472214_ASSIGNMENT5-JAVA](https://github.com/JahnaviReddy2503/CSA09-192472214_ASSIGNMENT5-JAVA),
+whose name differs from the assignment's requested name. At the student's
+direction, commits were pushed to its `master` branch and the remote commit
+was verified against local `HEAD`. If submission strictly requires the
+exact-name repository, create or confirm
 `CSA09-192472214-Assignment5`, configure the matching `origin`, authenticate,
 and push the existing progressive task commits:
 
