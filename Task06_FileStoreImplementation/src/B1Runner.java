@@ -11,14 +11,16 @@ public final class B1Runner {
         try {
             Files.writeString(file, "one\ntwo\nthree\n");
             long unbufferedStart = System.nanoTime();
-            long unbuffered = LineCounter.countUnbuffered(file);
+            LineCounter.Result unbuffered = LineCounter.countUnbufferedWithMetrics(file);
             long unbufferedNanos = System.nanoTime() - unbufferedStart;
             long bufferedStart = System.nanoTime();
-            long buffered = LineCounter.countBuffered(file);
+            LineCounter.Result buffered = LineCounter.countBufferedWithMetrics(file);
             long bufferedNanos = System.nanoTime() - bufferedStart;
-            System.out.println("unbufferedLines=" + unbuffered
+            System.out.println("unbufferedLines=" + unbuffered.lines()
+                    + ", readCalls=" + unbuffered.readCalls()
                     + ", timeNanos=" + unbufferedNanos);
-            System.out.println("bufferedLines=" + buffered
+            System.out.println("bufferedLines=" + buffered.lines()
+                    + ", readCalls=" + buffered.readCalls()
                     + ", timeNanos=" + bufferedNanos);
         } finally {
             Files.deleteIfExists(file);
