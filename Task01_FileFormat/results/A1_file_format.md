@@ -1,5 +1,10 @@
 # Task A1 - Design a Bus-Pass File Format (7 marks)
 
+> **SIMATS pseudocode note:** The official SIMATS Engineering pseudocode
+> standard was not present in the project files. This document uses numbered
+> steps with INPUT, OUTPUT, BEGIN, and END. Adjust to the official SIMATS
+> standard.
+
 ## Aim
 
 Design a durable file representation for bus passes and algorithms for adding a
@@ -16,7 +21,7 @@ Each logical record contains:
 6. `validityDate`
 7. `amountPaid`
 
-## A1.1 Record layouts
+## A1.1 - Represent the Record (2 marks)
 
 ### Delimited text layout
 
@@ -51,8 +56,9 @@ records should not contain unescaped newline characters.
 
 ### Binary layout using `DataOutputStream`
 
-The binary file contains a sequence of length-prefixed records. Every record is
-written in this exact order:
+The binary file contains a sequence of records. Strings are individually
+length-prefixed by `writeUTF`; numeric fields have fixed widths. Every record
+is written in this exact order:
 
 | Field | Binary representation |
 |---|---|
@@ -66,7 +72,7 @@ written in this exact order:
 | amount paid | `writeDouble(double)` |
 
 `writeUTF` stores a two-byte unsigned length followed by modified UTF-8 bytes.
-The three integer-like fixed-width values occupy 4 bytes each, and the amount
+The version and route integer fields occupy 4 bytes each, and the amount
 occupies 8 bytes; strings have variable size plus their length prefix. The
 record does not use a delimiter, so a name may contain `|`, commas, or other
 punctuation without escaping. A name containing a line break is also safe in
@@ -91,7 +97,7 @@ Input fields
     +--> flush and close
 ```
 
-## A1.2 Operations for the text design
+## A1.2 - Design the Operations (3 marks)
 
 ### ALGORITHM AddBusPass
 
@@ -129,7 +135,8 @@ small write operations and supplies `newLine()`. For a byte-defined encoding,
 **OUTPUT:** the matching pass, or `NOT FOUND`
 
 1. BEGIN.
-2. IF the file does not exist THEN return `NOT FOUND`.
+2. Use `File.exists()` to check whether the file exists; if it does not, return
+   `NOT FOUND` without opening a reader.
 3. TRY:
    1. Open `FileReader(filePath)`.
    2. Wrap it in `BufferedReader`.
@@ -153,6 +160,9 @@ small write operations and supplies `newLine()`. For a byte-defined encoding,
 `FileReader` reads characters and `BufferedReader` reads complete lines
 efficiently. A byte-oriented implementation may use
 `FileInputStream` plus an explicit UTF-8 decoder and `BufferedReader`.
+`File` is used for existence and parent-directory checks; the stream classes do
+the actual reading and writing. `FileWriter(filePath, true)` creates a missing
+file when appending, provided its parent directory exists and is writable.
 
 ### ALGORITHM ListPassesByRoute
 
@@ -161,7 +171,8 @@ efficiently. A byte-oriented implementation may use
 
 1. BEGIN.
 2. Create an empty result list.
-3. IF the file does not exist THEN return the empty result list.
+3. Use `File.exists()` to check whether the file exists; if it does not, return
+   the empty result list.
 4. TRY:
    1. Open `FileReader(filePath)` and wrap it in `BufferedReader`.
    2. FOR each line until end-of-file:
@@ -198,7 +209,7 @@ Character streams are appropriate for the UTF-8 text representation after an
 explicit encoding choice. Byte streams are appropriate for binary records or
 when the program must control raw bytes.
 
-## A1.3 Damaged data and failure handling
+## A1.3 - Design for Damaged Data (2 marks)
 
 ### Damaged line
 
@@ -278,6 +289,13 @@ field must be rejected or truncated (truncation is unsafe). Text files are
 portable and inspectable; fixed records provide predictable offsets but require
 strict field sizing and index-recovery rules.
 
+For a worked padding estimate, assume the fixed record reserves 12 bytes for
+an ID averaging 6 bytes, 40 bytes for a name averaging 18 bytes, and 30 bytes
+for a boarding stop averaging 16 bytes. Those fields waste
+`(12-6) + (40-18) + (30-16) = 42` bytes per record. Across 8,000 passes that is
+`42 × 8,000 = 336,000` bytes, about 328 KiB, before counting padding in other
+fields. The actual waste depends on the chosen widths and observed data.
+
 ## Conclusion
 
 Delimited text is appropriate for a small, inspectable bus-pass store when
@@ -285,3 +303,8 @@ validation, escaping, damaged-line handling, and an explicit durability policy
 are implemented. A fixed-length `RandomAccessFile` design can provide constant
 time point lookup with an index, but it trades portability and space efficiency
 for predictable offsets.
+
+**Evidence Expected:** Record layouts and escaping rules (A1.1); ADD, FIND, and
+LIST algorithms with stream choices (A1.2); damaged-file and missing-file
+handling (A1.3); fixed-record comparison and complexity table (Alternative
+Concept and Complexity Analysis).

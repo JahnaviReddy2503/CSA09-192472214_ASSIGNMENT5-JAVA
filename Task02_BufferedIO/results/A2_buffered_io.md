@@ -1,11 +1,16 @@
 # Task A2 - Do Not Read What You Do Not Need (5 marks)
 
+> **SIMATS pseudocode note:** The official SIMATS Engineering pseudocode
+> standard was not present in the project files. This document uses numbered
+> steps with INPUT, OUTPUT, BEGIN, and END. Adjust to the official SIMATS
+> standard.
+
 ## Aim
 
 Count line terminators in a 50 MiB log while avoiding one operating-system read
 operation for every byte.
 
-## A2.1 One-byte design
+## A2.1 - One-Byte Design (2 marks)
 
 If `50 MiB` means `50 × 1024 × 1024` bytes, the loop makes exactly
 `52,428,800` calls to `FileInputStream.read()` if the file is that size. If the
@@ -16,7 +21,7 @@ Although the JVM and OS may cache some data, each Java call still has method,
 buffer, and boundary-check overhead. If the implementation reaches the OS for
 each byte, system-call overhead makes it especially slow.
 
-## A2.2 Buffered redesign
+## A2.2 - Buffered Redesign (2 marks)
 
 **ALGORITHM CountLinesBuffered**
 
@@ -51,7 +56,15 @@ An unbuffered `byte[]` loop using `FileInputStream.read(buffer)` is also valid;
 `BufferedInputStream` adds an internal buffer and is useful when callers request
 small reads.
 
-## A2.3 When buffering helps little
+```text
+BEGIN -> open byte stream -> read byte[8192] -> count LF bytes
+                                  ^                    |
+                                  |---- more bytes ----|
+                                                       |
+                                   EOF -> close -> return count
+```
+
+## A2.3 - When Buffering Helps Little (1 mark)
 
 Buffering gives little benefit when the input is already fully resident in
 memory or is an interactive source that produces only one byte at a time and
@@ -81,3 +94,8 @@ Buffered streaming preserves linear processing time while changing the
 physical-read count from approximately one per byte to one per buffer. It is
 the default design for large logs; `readAllLines` is appropriate only when the
 whole file is intentionally required in memory.
+
+**Evidence Expected:** Read-call estimate and overhead (A2.1); 8 KiB algorithm,
+flowchart, and complexity (A2.2); low-benefit example (A2.3); memory/time
+comparison with `Files.readAllLines` (Alternative Concept and Complexity
+Analysis).

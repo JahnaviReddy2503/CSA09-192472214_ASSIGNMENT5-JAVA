@@ -1,11 +1,16 @@
 # Task A3 - Data-Access Object Pattern (5 marks)
 
+> **SIMATS pseudocode note:** The official SIMATS Engineering pseudocode
+> standard was not present in the project files. This document uses numbered
+> steps with INPUT, OUTPUT, BEGIN, and END. Adjust to the official SIMATS
+> standard.
+
 ## Aim
 
 Centralize persistence logic so StudentDB, CourseDB, and MarksDB do not repeat
 connection, statement, mapping, error, and resource-management code.
 
-## A3.1 Common and differing steps
+## A3.1 - Common and Differing Steps (2 marks)
 
 Common steps are opening a connection, preparing SQL, binding values, executing
 the statement, mapping a result row, handling `SQLException`, and closing JDBC
@@ -17,7 +22,7 @@ Service -> StudentDao / CourseDao / MarksDao -> JDBC -> database table
              shared DAO contract, entity-specific SQL and mapping
 ```
 
-## A3.2 Generic DAO contract
+## A3.2 - Generic DAO Contract (2 marks)
 
 The compilable example is in [`Dao.java`](../src/Dao.java),
 [`Student.java`](../src/Student.java), and
@@ -32,6 +37,17 @@ OPERATION findById(id: K) RETURNS Optional<T>
 OPERATION findAll() RETURNS List<T>
 OPERATION update(entity: T) RETURNS boolean
 OPERATION delete(id: K) RETURNS boolean
+```
+
+**Student data object outline (pseudocode):**
+
+```text
+CLASS Student
+    studentId: integer
+    name: string
+    email: string
+    department: string
+END CLASS
 ```
 
 **ALGORITHM StudentDao.findById**
@@ -51,14 +67,14 @@ OPERATION delete(id: K) RETURNS boolean
 exception pattern, with entity-specific SQL. A service uses the interface and
 does not know whether the implementation uses JDBC or another store.
 
-## A3.3 Student-to-table mapping
+## A3.3 - Student-to-Table Mapping (1 mark)
 
 | Student property | SQL column | Role/type |
 |---|---|---|
-| `studentId` | `student_id` | `PRIMARY KEY`, integer/string as specified |
-| `name` | `name` | `VARCHAR`, required |
-| `email` | `email` | `VARCHAR`, unique if required |
-| `department` | `department` | `VARCHAR` |
+| `studentId` | `student_id` | `INTEGER`, `PRIMARY KEY` |
+| `name` | `name` | `VARCHAR(100)`, required |
+| `email` | `email` | `VARCHAR(150)`, unique |
+| `department` | `department` | `VARCHAR(60)`, required |
 
 The primary key is bound in `WHERE` clauses for lookup, update, and delete.
 Generated keys are read after insert only if the schema generates them.
@@ -82,3 +98,8 @@ change is normally localized to the relevant DAO and tests. Both designs have
 DAO separates business logic from persistence details and makes schema changes,
 testing, and replacement of the storage implementation safer without changing
 the asymptotic database cost.
+
+**Evidence Expected:** Shared JDBC workflow and differences (A3.1); generic
+contract, Student outline, and DAO diagram (A3.2); field/column/key mapping
+(A3.3); maintenance and complexity comparison (Alternative Concept and
+Complexity Analysis).

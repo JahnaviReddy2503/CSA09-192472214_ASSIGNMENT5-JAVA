@@ -1,6 +1,11 @@
 # Task A5 - Correctness and Safety (4 marks)
 
-## A5.1 Transfer transaction
+> **SIMATS pseudocode note:** The official SIMATS Engineering pseudocode
+> standard was not present in the project files. This document uses numbered
+> steps with INPUT, OUTPUT, BEGIN, and END. Adjust to the official SIMATS
+> standard.
+
+## A5.1 - Transfer Transaction (2 marks)
 
 **ALGORITHM TransferWalletAmount**
 
@@ -9,8 +14,9 @@
 
 1. BEGIN.
 2. Set `amount` to `500`.
-3. Set `autoCommit` to `false`.
-4. TRY:
+3. Save the current `autoCommit` setting as `oldAutoCommit`.
+4. Set `autoCommit` to `false`.
+5. TRY:
    1. Execute a parameterized debit:
       `UPDATE wallet SET balance = balance - ? WHERE wallet_id = ? AND balance >= ?`.
    2. IF the affected row count is not one THEN throw an insufficient-funds error.
@@ -18,11 +24,11 @@
       `UPDATE wallet SET balance = balance + ? WHERE wallet_id = ?`.
    4. IF the affected row count is not one THEN throw a missing-wallet error.
    5. Commit the transaction.
-5. CATCH any database or validation error:
+6. CATCH any database or validation error:
    1. Roll back.
    2. Report failure.
-6. FINALLY restore the original auto-commit setting.
-7. END.
+7. FINALLY restore `oldAutoCommit`.
+8. END.
 
 Both updates become visible together or neither becomes visible. The debit
 condition prevents a negative balance. A database constraint and suitable
@@ -35,7 +41,7 @@ BEGIN -> debit hostel -> credit canteen -> COMMIT
              +-------------------------> ROLLBACK
 ```
 
-## A5.2 Injection and prepared statements
+## A5.2 - Injection and Prepared Statements (2 marks)
 
 The unsafe query is:
 
@@ -46,6 +52,19 @@ SELECT * FROM users WHERE id='inputId' AND pwd='inputPassword'
 If an attacker supplies an ID such as `' OR '1'='1` and the input is inserted
 without validation, the resulting expression can make the predicate true for
 many rows. The input changes SQL syntax instead of remaining data.
+
+For the unsafe statement
+`SELECT * FROM users WHERE id='` + `id` + `' AND pwd='` + `pwd` + `'`, using
+`' OR '1'='1` for both values produces:
+
+```sql
+SELECT * FROM users WHERE id='' OR '1'='1' AND pwd='' OR '1'='1'
+```
+
+```text
+Untrusted input -> string concatenation -> SQL syntax changed -> login bypass
+Untrusted input -> prepared placeholders -> values remain data -> no bypass
+```
 
 The safe design is:
 
@@ -77,3 +96,7 @@ syntax/context; parameter binding is the database-supported boundary.
 Use one transaction for the debit and credit and use `PreparedStatement` for
 every user-controlled value. Correctness and injection resistance are
 properties of the database interaction, not merely of a GUI validation rule.
+
+**Evidence Expected:** Debit/credit transaction algorithm and rollback flow
+(A5.1); injection example and parameterized redesign (A5.2); transaction and
+input-validation trade-offs (Alternative Concept and Complexity Analysis).
